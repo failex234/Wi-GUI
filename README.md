@@ -8,7 +8,8 @@ You can also edit network1 and network2 so that you don't have to type
 in the network name everytime you want to use this script.
 
 # Installation
-If you want to install this script just copy it to /usr/bin.
+If you want to install this script just copy it to /usr/bin or you can
+just run it rightaway.
 I will provide a Makefile in the future!
 
 # Dependencies
