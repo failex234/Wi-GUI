@@ -211,7 +211,8 @@ elif [ "$number" == "3" ]; then
 	exit 3
 fi
 else
-	echo "Input not found!"
+	#Maybe it would be better to start over instead of exiting...
+	echo "Unexpected input. exiting..."
 	exit -1
 fi	
 
