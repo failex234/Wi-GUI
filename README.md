@@ -16,3 +16,6 @@ a bit more!
 - wpa_supplicant
 - Sudo
 - dhcpcd
+
+# Disclaimer
+This is my first bash script so nothing beatiful! But it works at least
