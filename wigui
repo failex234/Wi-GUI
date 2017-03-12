@@ -48,6 +48,7 @@ if [ "$@" == "--version" ]; then
 	echo "Wi-GUI Version 1.0"
 	echo "Copyright (c) 2017 by Felix Naumann"
 	echo "This product is free under the GNU General Public License 3"
+	echo "Git Repo: https://github.com/failex234/Wi-GUI "
 fi
 
 clear
