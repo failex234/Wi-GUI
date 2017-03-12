@@ -15,10 +15,10 @@ if [ "$@" == "--help" ]; then
 	echo ""
 	echo "Possible arguments:"
 	echo ""
-	echo "--help - Shows this help menu."
+	echo "--help    - Shows this help menu."
 	echo "--version - Output program version number."
-	echo "--kill - Just kill dhcpcd and wpa_supplicant"
-	echo "         without actually opening the GUI.  "
+	echo "--kill    - Just kill dhcpcd and wpa_supplicant"
+	echo "            without actually opening the GUI.  "
 	echo "-------------------------------------------------"
 	exit 1
 fi
