@@ -1,0 +1,217 @@
+#!/bin/sh
+dhcpcd= "false"
+
+network1="CHANGEME"
+network2="CHANGEME"
+
+
+
+if [ "$@" == "--help" ]; then
+	echo "------------------Wi-GUI Help--------------------"
+	echo "Easy GUI to connect to predefined or custom net- "
+	echo "works. Uses wpa_supplicant and dhcpcd. "
+	echo ""
+	echo "Usage: wigui <args>"
+	echo ""
+	echo "Possible arguments:"
+	echo ""
+	echo "--help - Shows this help menu."
+	echo "--version - Output program version number."
+	echo "--kill - Just kill dhcpcd and wpa_supplicant"
+	echo "         without actually opening the GUI.  "
+	echo "-------------------------------------------------"
+	exit 1
+fi
+
+if [ "$@" == "--kill" ]; then
+pgrep dhcpcd > /dev/null && dhcpcd="true"
+pgrep wpa_supplicant > /dev/null && wpa="true"
+	if [[ ( "$dhcpcd" == "true" || "$wpa" == "true" ) ]]; then
+ 		CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
+		if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
+			echo "Killing dhcpcd and wpa_supplicant..."
+			sudo kill 9 dhcpcd
+			sudo kill 9 wpa_supplicant
+		else
+			echo "You need to authenticate to kill dhcpcd and wpa_supplicant"
+			sudo kill 9 dhcpcd
+			sudo kill 9 wpa_supplicant
+		fi
+	else
+		echo "dhcpcd and wpa_supplicant are not running..."
+		exit 1
+	fi
+	
+fi
+
+if [ "$@" == "--version" ]; then
+	echo "Wi-GUI Version 1.0"
+	echo "Copyright (c) 2017 by Felix Naumann"
+	echo "This product is free under the GNU General Public License 3"
+fi
+
+clear
+
+echo "|-----------------------------------"
+echo "|                                   "
+echo "| 1. $network1"  
+echo "| 2. $network2"             
+echo "| 3. Custom Profile                 "
+echo "|                                   "
+echo "|-----------------------------------"
+echo ""
+echo -n "Please choose a profile: "
+read number
+
+
+pgrep dhcpcd > /dev/null && dhcpcd="true" 
+pgrep wpa_supplicant > /dev/null && wpa="true"
+
+if [ "$dhcpcd" == "true" ]; then
+	echo -n "dhcpcd is already running, should i kill it for you? [y/n] "
+	read choice
+	CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
+	if [ "$choice" == "y" ]; then
+		if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
+			echo "Killing dhcpcd..."
+			sudo kill 9 dhcpcd
+		else
+			echo "You need to authenticate to kill dhcpcd..."
+			sudo kill 9 dhcpcd
+		fi
+
+	fi
+fi
+
+if [ "$wpa" == "true" ]; then
+	echo -n "wpa_supplicant is already running should i kill it for you? [y/n] "
+	read choice
+	CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
+	if [ "$choice" == "y" ]; then
+		if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
+			echo "Killing wpa_supplicant..."
+			sudo kill 9 wpa_supplicant
+		else
+			echo "You need to authenticate to kill wpa_supplicant..."
+			sudo kill 9 wpa_supplicant
+		fi
+	fi
+fi
+
+if [ "$number" == "1" ]; then
+	echo ""
+	echo -n "Please enter the password for ${network1}: "
+	read password
+	if [ "$UID" == "0" ]; then
+		echo "Initializing connection to ${network1}..."
+		
+		wpa_passphrase "$network1" "$password" > pwtemp.conf
+		wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		
+		rm pwtemp.conf
+		
+		echo "Connecting to ${network1}..."
+		
+		dhcpcd wlo1 2&> /dev/null
+		
+		echo "Successfully connected! Good bye!"
+		exit 1
+	else
+		SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
+		if [ $SUDO -gt 0 ]; then
+			echo "Already root..."
+		else
+		echo "____________________________________________________"
+		echo "Please Authenticate to connect to ${network1}..."
+		echo "____________________________________________________"
+		echo ""
+		fi
+		wpa_passphrase "$network1" "$password" > pwtemp.conf 
+		sudo wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		rm pwtemp.conf
+		echo "Connecting to ${network1}..."
+		sudo dhcpcd wlo1 2&> /dev/null
+		echo "Successfully connected! Good bye!"
+		exit 1
+	fi
+elif [ "$number" == "2" ]; then
+	echo ""
+	echo -n "Please enter the password for ${network2}: "
+	read password
+	if [ "$UID" == "0" ]; then
+		echo "Initializing connection to ${network2}..."
+		
+		wpa_passphrase "$network2" "$password" > pwtemp.conf
+		wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		
+		rm pwtemp.conf
+		
+		echo "Connecting to ${network2}..."
+		
+		dhcpcd wlo1 2&> /dev/null
+		
+		echo "Successfully connected! Good bye!"
+		exit 1
+	else
+		SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
+		if [ $SUDO -gt 0 ]; then
+			echo "Already authenticated as sudo..."
+		else
+		echo "____________________________________________________"
+		echo "Please Authenticate to connect to ${network2}..."
+		echo "____________________________________________________"
+		echo ""
+		fi
+	fi
+		wpa_passphrase "$network2" "$password" > pwtemp.conf 
+		sudo wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		rm pwtemp.conf
+		echo "Connecting to ${network2}..."
+		sudo dhcpcd wlo1 2&> /dev/null
+		echo "Successfully connected! Good bye!"
+		exit 1
+elif [ "$number" == "3" ]; then
+	echo -n "Please input the network you want to connect to: "
+	read network
+	echo ""
+	echo -n "Please enter the password for ${network}: "
+	read password
+	if [ "$UID" == "0" ]; then
+		echo "Initializing connection to ${network}..."
+		
+		wpa_passphrase "$network" "$password" > pwtemp.conf
+		wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		
+		rm pwtemp.conf
+		
+		echo "Connecting to ${network}..."
+		
+		dhcpcd wlo1 2&> /dev/null
+		
+		echo "Successfully connected! Good bye!"
+		exit 1
+	else
+		SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
+		if [ $SUDO -gt 0 ]; then
+			echo "Already authenticated as sudo..."
+		else
+		echo "____________________________________________________"
+		echo "Please Authenticate to connect to ${network}..."
+		echo "____________________________________________________"
+		echo ""
+	fi
+		wpa_passphrase "$network" "$password" > pwtemp.conf 
+		sudo wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		rm pwtemp.conf
+		echo "Connecting to ${network}..."
+		sudo dhcpcd wlo1 2&> /dev/null
+		echo "Successfully connected! Good bye!"
+		exit 1
+	exit 3
+fi
+else
+	echo "Input not found!"
+	exit -1
+fi	
+
+
