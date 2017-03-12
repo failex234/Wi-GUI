@@ -3,6 +3,7 @@ dhcpcd= "false"
 
 network1="CHANGEME"
 network2="CHANGEME"
+interface="eth0"
 
 
 
@@ -110,13 +111,13 @@ if [ "$number" == "1" ]; then
 		echo "Initializing connection to ${network1}..."
 		
 		wpa_passphrase "$network1" "$password" > pwtemp.conf
-		wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
 		
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network1}..."
 		
-		dhcpcd wlo1 2&> /dev/null
+		dhcpcd $interface 2&> /dev/null
 		
 		echo "Successfully connected! Good bye!"
 		exit 1
@@ -131,10 +132,10 @@ if [ "$number" == "1" ]; then
 		echo ""
 		fi
 		wpa_passphrase "$network1" "$password" > pwtemp.conf 
-		sudo wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		sudo wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
 		rm pwtemp.conf
 		echo "Connecting to ${network1}..."
-		sudo dhcpcd wlo1 2&> /dev/null
+		sudo dhcpcd $interface 2&> /dev/null
 		echo "Successfully connected! Good bye!"
 		exit 1
 	fi
@@ -146,13 +147,13 @@ elif [ "$number" == "2" ]; then
 		echo "Initializing connection to ${network2}..."
 		
 		wpa_passphrase "$network2" "$password" > pwtemp.conf
-		wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
 		
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network2}..."
 		
-		dhcpcd wlo1 2&> /dev/null
+		dhcpcd $interface 2&> /dev/null
 		
 		echo "Successfully connected! Good bye!"
 		exit 1
@@ -168,10 +169,10 @@ elif [ "$number" == "2" ]; then
 		fi
 	fi
 		wpa_passphrase "$network2" "$password" > pwtemp.conf 
-		sudo wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		sudo wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
 		rm pwtemp.conf
 		echo "Connecting to ${network2}..."
-		sudo dhcpcd wlo1 2&> /dev/null
+		sudo dhcpcd $interface 2&> /dev/null
 		echo "Successfully connected! Good bye!"
 		exit 1
 elif [ "$number" == "3" ]; then
@@ -184,13 +185,13 @@ elif [ "$number" == "3" ]; then
 		echo "Initializing connection to ${network}..."
 		
 		wpa_passphrase "$network" "$password" > pwtemp.conf
-		wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
 		
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network}..."
 		
-		dhcpcd wlo1 2&> /dev/null
+		dhcpcd $interface 2&> /dev/null
 		
 		echo "Successfully connected! Good bye!"
 		exit 1
@@ -205,10 +206,10 @@ elif [ "$number" == "3" ]; then
 		echo ""
 	fi
 		wpa_passphrase "$network" "$password" > pwtemp.conf 
-		sudo wpa_supplicant -B -i wlo1 -c pwtemp.conf 2&> /dev/null
+		sudo wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
 		rm pwtemp.conf
 		echo "Connecting to ${network}..."
-		sudo dhcpcd wlo1 2&> /dev/null
+		sudo dhcpcd $interface 2&> /dev/null
 		echo "Successfully connected! Good bye!"
 		exit 1
 	exit 3
