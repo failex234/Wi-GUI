@@ -51,6 +51,7 @@ if [ "$@" == "--version" ]; then
 	echo "Copyright (c) 2017 by Felix Naumann"
 	echo "This product is free under the GNU General Public License 3"
 	echo "Git Repo: https://github.com/failex234/Wi-GUI "
+	exit 1
 fi
 
 clear
