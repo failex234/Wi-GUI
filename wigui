@@ -1,10 +1,10 @@
 #!/bin/sh
-dhcpcd= "false"
+
 
 network1="CHANGEME"
 network2="CHANGEME"
 interface="eth0"
-
+debug=false;
 
 
 if [ "$@" == "--help" ]; then
@@ -18,6 +18,8 @@ if [ "$@" == "--help" ]; then
 	echo ""
 	echo "--help    - Shows this help menu."
 	echo "--version - Output program version number."
+	echo "--status  - Runtime Status of dhcpcd and"
+	echo "            wpa_supplicant."
 	echo "--kill    - Just kill dhcpcd and wpa_supplicant"
 	echo "            without actually opening the GUI.  "
 	echo "-------------------------------------------------"
@@ -48,12 +50,34 @@ pgrep wpa_supplicant > /dev/null && wpa="true"
 fi
 
 if [ "$@" == "--version" ]; then
-	echo "Wi-GUI Version 1.0"
+	echo "Wi-GUI Version 1.2"
 	echo "Copyright (c) 2017 by Felix Naumann"
 	echo "This product is free under the GNU General Public License 3"
 	echo "Git Repo: https://github.com/failex234/Wi-GUI "
 	exit 1
 fi
+
+if [ "$@" == "--debug" ]; then
+	debug=true
+fi
+
+if [ "$@" == "--status" ]; then
+dhcpcd="false"
+wpa="false"
+pgrep dhcpcd > /dev/null && dhcpcd="true"
+pgrep wpa_supplicant > /dev/null && wpa="true"
+
+if [[ ( "$dhcpcd" == "true" && "$wpa" == "true" ) ]]; then
+	echo "dhcpcd: running, wpa_supplicant: running"
+elif [[ ( "$dhcpcd" == "true" && "$wpa" == "false" ) ]]; then
+	echo "dhcpcd: running, wpa_supplicant: stopped"
+elif [[ ( "$dhcpcd" == "false" && "$wpa" == "true" ) ]]; then
+	echo "dhcpcd: stopped, wpa_supplicant: running"
+else
+	echo "dhcpcd: stopped, wpa_supplicant: stopped"
+fi
+exit 1
+fi	
 
 clear
 
@@ -109,16 +133,21 @@ if [ "$number" == "1" ]; then
 	read password
 	if [ "$UID" == "0" ]; then
 		echo "Initializing connection to ${network1}..."
-		
+		if [ $debug == true ]; then		
+		wpa_passphrase "$network1" "$password" > pwtemp.conf
+		wpa_supplicant -B -i $interface -c pwtemp.conf
+	else
 		wpa_passphrase "$network1" "$password" > pwtemp.conf
 		wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
-		
+	fi
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network1}..."
-		
+	if [ $debug == true ]; then	
+		dhcpcd $interface
+	else
 		dhcpcd $interface 2&> /dev/null
-		
+	fi
 		echo "Successfully connected! Good bye!"
 		exit 1
 	else
@@ -131,11 +160,23 @@ if [ "$number" == "1" ]; then
 		echo "____________________________________________________"
 		echo ""
 		fi
+
+		if [ $debug == true ]; then
+		wpa_passphrase "$network1" "$password" > pwtemp.conf 
+		sudo wpa_supplicant -B -i $interface -c pwtemp.conf
+		else
 		wpa_passphrase "$network1" "$password" > pwtemp.conf 
 		sudo wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
+		fi
+
 		rm pwtemp.conf
 		echo "Connecting to ${network1}..."
+		if [ $debug == true ]; then
+		sudo dhcpcd $interface
+		else
 		sudo dhcpcd $interface 2&> /dev/null
+		fi
+
 		echo "Successfully connected! Good bye!"
 		exit 1
 	fi
@@ -146,14 +187,23 @@ elif [ "$number" == "2" ]; then
 	if [ "$UID" == "0" ]; then
 		echo "Initializing connection to ${network2}..."
 		
+		if [ $debug == true ]; then
+		wpa_passphrase "$network2" "$password" > pwtemp.conf
+		wpa_supplicant -B -i $interface -c pwtemp.conf
+		else
 		wpa_passphrase "$network2" "$password" > pwtemp.conf
 		wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
+		fi
 		
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network2}..."
 		
+		if [ $debug == true ]; then
+		dhcpcd $interface
+		else
 		dhcpcd $interface 2&> /dev/null
+		fi
 		
 		echo "Successfully connected! Good bye!"
 		exit 1
@@ -168,8 +218,13 @@ elif [ "$number" == "2" ]; then
 		echo ""
 		fi
 	fi
+		if [ $debug == true ]; then
+		wpa_passphrase "$network2" "$password" > pwtemp.conf 
+		sudo wpa_supplicant -B -i $interface -c pwtemp.conf
+		else
 		wpa_passphrase "$network2" "$password" > pwtemp.conf 
 		sudo wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
+fi
 		rm pwtemp.conf
 		echo "Connecting to ${network2}..."
 		sudo dhcpcd $interface 2&> /dev/null
