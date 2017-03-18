@@ -12,6 +12,9 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 RESET='\033[0m'
 
+hash wpa_supplicant 2>/dev/null || { echo >&2 "wpa_supplicant not found! Maybe it's not installed or not in your PATH."; exit 1; }
+hash dhcpcd 2>/dev/null || { echo >&2 "dhcpcd not found! Maybe it's not installed or not in your PATH."; exit 1; }
+hash sudo 2>/dev/null || { echo >&2 "sudo not found! In the future you'll don't need sudo but for now you do!."; exit 1; }
 if [ -f $HOME/.config/wigui.conf ]; then 
 	source $HOME/.config/wigui.conf
 	if [[ ( "$network1" == "CHANGEME" && "$network2" == "CHANGEME" ) ]]; then
