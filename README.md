@@ -19,4 +19,4 @@ I will provide a Makefile in the future!
 - dhcpcd
 
 # Disclaimer
-This is my first bash script so nothing beatiful! But it works at least
+This is my first bash script so nothing beautiful! But it works at least
