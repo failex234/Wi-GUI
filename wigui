@@ -1,7 +1,7 @@
 #!/bin/sh
 
 config=$HOME/.config/wigui.conf
-
+connectcheck=$HOME/.config/connected
 
 
 #It's not recommended to change these \/ \/
@@ -15,8 +15,8 @@ RESET='\033[0m'
 hash wpa_supplicant 2>/dev/null || { echo >&2 "wpa_supplicant not found! Maybe it's not installed or not in your PATH."; exit 1; }
 hash dhcpcd 2>/dev/null || { echo >&2 "dhcpcd not found! Maybe it's not installed or not in your PATH."; exit 1; }
 hash sudo 2>/dev/null || { echo >&2 "sudo not found! In the future you'll don't need sudo but for now you do!."; exit 1; }
-if [ -f $HOME/.config/wigui.conf ]; then 
-	source $HOME/.config/wigui.conf
+if [ -f $config ]; then 
+	source $config
 	if [[ ( "$network1" == "CHANGEME" && "$network2" == "CHANGEME" ) ]]; then
 		echo "Please set at least one network name in your config!"
 	       	exit 1	
@@ -66,11 +66,13 @@ pgrep wpa_supplicant > /dev/null && wpa="true"
 			echo "Killing dhcpcd and wpa_supplicant..."
 			sudo kill 9 dhcpcd
 			sudo kill 9 wpa_supplicant
+			rm $connectcheck
 			exit 1
 		else
 			echo "You need to authenticate to kill dhcpcd and wpa_supplicant"
 			sudo kill 9 dhcpcd
 			sudo kill 9 wpa_supplicant
+			rm $connectcheck
 			exit 1
 		fi
 	else
@@ -81,7 +83,7 @@ pgrep wpa_supplicant > /dev/null && wpa="true"
 fi
 
 if [ "$@" == "--version" ]; then
-	echo "Wi-GUI Version 1.5"
+	echo "Wi-GUI Version 1.6"
 	echo "Copyright (c) 2017 by Felix Naumann"
 	echo "This product is free under the GNU General Public License 3"
 	echo "Git Repo: https://github.com/failex234/Wi-GUI "
@@ -112,7 +114,7 @@ fi
 
 clear
 
-echo "|-----------------------------------"
+echo "|----------------------------------------"
 echo "|                                   "
 if [ ! "$n1enabled" == "false" ]; then
 echo "| 1. $network1"  
@@ -122,9 +124,13 @@ echo "| 2. $network2"
 fi
 echo "| 3. Custom Profile                 "
 echo "|                                   "
-echo "|-----------------------------------"
+echo "|----------------------------------------"
 echo "| Current interface: $interface"
-echo "|-----------------------------------"
+echo "|----------------------------------------"
+if [ -f $connectcheck ]; then
+	echo "| Connected to: $(cat $connectcheck)"
+echo "|----------------------------------------"
+fi
 echo ""
 echo -n "Please choose a profile: "
 read number
@@ -152,6 +158,7 @@ if [ "$dhcpcd" == "true" ]; then
 			echo "You need to authenticate to kill dhcpcd..."
 			sudo kill 9 dhcpcd
 		fi
+		rm $connectcheck 2&> /dev/null
 	elif [ "$choice" == "n" ]; then
 		echo "Sorry, but you can't continue!"
 		exit 1
@@ -174,6 +181,7 @@ if [ "$wpa" == "true" ]; then
 			echo "You need to authenticate to kill wpa_supplicant..."
 			sudo kill 9 wpa_supplicant
 		fi
+		rm $connectcheck 2&> /dev/null
 	elif [ "$choice" == "n" ]; then
 		echo "Sorry, but you can't continue!"
 		exit 1
@@ -199,11 +207,13 @@ if [ "$number" == "1" ]; then
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network1}..."
-	if [ $debug == true ]; then	
+		echo "${network1}" > $connectcheck
+	if [ $debug == "true" ]; then	
 		dhcpcd $interface
 	else
 		dhcpcd $interface 2&> /dev/null
 	fi
+		echo "${network1}" > $connectcheck
 		echo "Successfully connected! Good bye!"
 		exit 1
 	else
@@ -232,7 +242,8 @@ if [ "$number" == "1" ]; then
 		else
 		sudo dhcpcd $interface 2&> /dev/null
 		fi
-
+		
+		echo "${network1}" > $connectcheck
 		echo "Successfully connected! Good bye!"
 		exit 1
 	fi
@@ -260,7 +271,7 @@ elif [ "$number" == "2" ]; then
 		else
 		dhcpcd $interface 2&> /dev/null
 		fi
-		
+		echo "${network2}" > $connectcheck
 		echo "Successfully connected! Good bye!"
 		exit 1
 	else
@@ -284,6 +295,7 @@ fi
 		rm pwtemp.conf
 		echo "Connecting to ${network2}..."
 		sudo dhcpcd $interface 2&> /dev/null
+		echo "${network2}" > $connectcheck
 		echo "Successfully connected! Good bye!"
 		exit 1
 elif [ "$number" == "3" ]; then
@@ -301,9 +313,11 @@ elif [ "$number" == "3" ]; then
 		rm pwtemp.conf
 		
 		echo "Connecting to ${network}..."
+		echo "${network}" > $connectcheck
 		
 		dhcpcd $interface 2&> /dev/null
 		
+		echo "${network}" > $connectcheck
 		echo "Successfully connected! Good bye!"
 		exit 1
 	else
@@ -321,6 +335,7 @@ elif [ "$number" == "3" ]; then
 		rm pwtemp.conf
 		echo "Connecting to ${network}..."
 		sudo dhcpcd $interface 2&> /dev/null
+		echo "${network}" > $connectcheck
 		echo "Successfully connected! Good bye!"
 		exit 1
 	exit 3
