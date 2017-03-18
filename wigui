@@ -1,11 +1,39 @@
 #!/bin/sh
 
+config=$HOME/.config/wigui.conf
 
-network1="CHANGEME"
-network2="CHANGEME"
-interface="eth0"
-debug=false;
 
+
+#It's not recommended to change these \/ \/
+n1enabled="true"
+n2enabled="true"
+debug="false"
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+RESET='\033[0m'
+
+if [ -f $HOME/.config/wigui.conf ]; then 
+	source $HOME/.config/wigui.conf
+	if [[ ( "$network1" == "CHANGEME" && "$network2" == "CHANGEME" ) ]]; then
+		echo "Please set at least one network name in your config!"
+	       	exit 1	
+	fi
+
+	if [ "$network1" == "CHANGEME" ]; then
+		n1enabled="false"
+	elif [ "$network2" == "CHANGEME" ]; then
+		n2enabled="false"
+	fi	
+else
+	echo "network1='CHANGEME'" > $config
+	echo "network2='CHANGEME'" >> $config
+	echo "interface='eth0'" >> $config
+	clear
+	echo "Before you first use Wi-GUI you have to change "
+	echo "the config to your needs. "
+	echo "The config is located in ${HOME}/.config/wigui.conf"
+	exit 1
+fi
 
 if [ "$@" == "--help" ]; then
 	echo "------------------Wi-GUI Help--------------------"
@@ -50,7 +78,7 @@ pgrep wpa_supplicant > /dev/null && wpa="true"
 fi
 
 if [ "$@" == "--version" ]; then
-	echo "Wi-GUI Version 1.2"
+	echo "Wi-GUI Version 1.5"
 	echo "Copyright (c) 2017 by Felix Naumann"
 	echo "This product is free under the GNU General Public License 3"
 	echo "Git Repo: https://github.com/failex234/Wi-GUI "
@@ -68,13 +96,13 @@ pgrep dhcpcd > /dev/null && dhcpcd="true"
 pgrep wpa_supplicant > /dev/null && wpa="true"
 
 if [[ ( "$dhcpcd" == "true" && "$wpa" == "true" ) ]]; then
-	echo "dhcpcd: running, wpa_supplicant: running"
+	echo -e "dhcpcd: ${GREEN}running${RESET}, wpa_supplicant: ${GREEN}running${RESET}"
 elif [[ ( "$dhcpcd" == "true" && "$wpa" == "false" ) ]]; then
-	echo "dhcpcd: running, wpa_supplicant: stopped"
+	echo -e "dhcpcd: ${GREEN}running${RESET}, wpa_supplicant: ${RED}stopped${RESET}"
 elif [[ ( "$dhcpcd" == "false" && "$wpa" == "true" ) ]]; then
-	echo "dhcpcd: stopped, wpa_supplicant: running"
+	echo -e "dhcpcd: ${RED}stopped${RESET}, wpa_supplicant: ${GREEN}running${RESET}"
 else
-	echo "dhcpcd: stopped, wpa_supplicant: stopped"
+	echo -e "dhcpcd: ${RED}stopped${RESET}, wpa_supplicant: ${RED}stopped${RESET}"
 fi
 exit 1
 fi	
@@ -83,21 +111,34 @@ clear
 
 echo "|-----------------------------------"
 echo "|                                   "
+if [ ! "$n1enabled" == "false" ]; then
 echo "| 1. $network1"  
+fi
+if [ ! "$n2enabled" == "false" ]; then
 echo "| 2. $network2"             
+fi
 echo "| 3. Custom Profile                 "
 echo "|                                   "
+echo "|-----------------------------------"
+echo "| Current interface: $interface"
 echo "|-----------------------------------"
 echo ""
 echo -n "Please choose a profile: "
 read number
 
-
+if [[ ( "$number" == "1" && "$n1enabled" == "false" ) ]]; then
+	echo "Network is disabled because the name hasn't been changed yet"
+	exit 1
+elif [[ ( "$number" == "2" && "$n2enabled" == "false" ) ]]; then
+	echo "Network is disabled because the name hasn't been changed yet"
+	exit 1
+fi
 pgrep dhcpcd > /dev/null && dhcpcd="true" 
 pgrep wpa_supplicant > /dev/null && wpa="true"
 
+if [[ ( "$number" == "1" || "$number" == "2" || "$number" == "3" ) ]]; then
 if [ "$dhcpcd" == "true" ]; then
-	echo -n "dhcpcd is already running, should i kill it for you? [y/n] "
+	echo -n "dhcpcd is already running, to continue dhcpcd needs to be killed. Are you sure? [y/n] "
 	read choice
 	CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
 	if [ "$choice" == "y" ]; then
@@ -108,12 +149,18 @@ if [ "$dhcpcd" == "true" ]; then
 			echo "You need to authenticate to kill dhcpcd..."
 			sudo kill 9 dhcpcd
 		fi
-
+	elif [ "$choice" == "n" ]; then
+		echo "Sorry, but you can't continue!"
+		exit 1
+	else
+		echo "Unexpected input. exiting..."
+		exit 1
 	fi
+
 fi
 
 if [ "$wpa" == "true" ]; then
-	echo -n "wpa_supplicant is already running should i kill it for you? [y/n] "
+	echo -n "wpa_supplicant is already, to continue wpa_supplicant needs to be killed. Are you sure? [y/n] "
 	read choice
 	CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
 	if [ "$choice" == "y" ]; then
@@ -124,9 +171,15 @@ if [ "$wpa" == "true" ]; then
 			echo "You need to authenticate to kill wpa_supplicant..."
 			sudo kill 9 wpa_supplicant
 		fi
+	elif [ "$choice" == "n" ]; then
+		echo "Sorry, but you can't continue!"
+		exit 1
+	else
+		echo "Unexpected input. exiting..."
+		exit 1
 	fi
 fi
-
+fi
 if [ "$number" == "1" ]; then
 	echo ""
 	echo -n "Please enter the password for ${network1}: "
@@ -161,7 +214,7 @@ if [ "$number" == "1" ]; then
 		echo ""
 		fi
 
-		if [ $debug == true ]; then
+		if [ $debug == "true" ]; then
 		wpa_passphrase "$network1" "$password" > pwtemp.conf 
 		sudo wpa_supplicant -B -i $interface -c pwtemp.conf
 		else
@@ -171,7 +224,7 @@ if [ "$number" == "1" ]; then
 
 		rm pwtemp.conf
 		echo "Connecting to ${network1}..."
-		if [ $debug == true ]; then
+		if [ $debug == "true" ]; then
 		sudo dhcpcd $interface
 		else
 		sudo dhcpcd $interface 2&> /dev/null
@@ -187,7 +240,7 @@ elif [ "$number" == "2" ]; then
 	if [ "$UID" == "0" ]; then
 		echo "Initializing connection to ${network2}..."
 		
-		if [ $debug == true ]; then
+		if [ $debug == "true" ]; then
 		wpa_passphrase "$network2" "$password" > pwtemp.conf
 		wpa_supplicant -B -i $interface -c pwtemp.conf
 		else
@@ -199,7 +252,7 @@ elif [ "$number" == "2" ]; then
 		
 		echo "Connecting to ${network2}..."
 		
-		if [ $debug == true ]; then
+		if [ $debug == "true" ]; then
 		dhcpcd $interface
 		else
 		dhcpcd $interface 2&> /dev/null
@@ -218,7 +271,7 @@ elif [ "$number" == "2" ]; then
 		echo ""
 		fi
 	fi
-		if [ $debug == true ]; then
+		if [ $debug == "true" ]; then
 		wpa_passphrase "$network2" "$password" > pwtemp.conf 
 		sudo wpa_supplicant -B -i $interface -c pwtemp.conf
 		else
