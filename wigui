@@ -64,14 +64,18 @@ pgrep wpa_supplicant > /dev/null && wpa="true"
  		CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
 		if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
 			echo "Killing dhcpcd and wpa_supplicant..."
-			sudo kill 9 dhcpcd
-			sudo kill 9 wpa_supplicant
+			dhcpcd_PID=`ps -ef | grep dhcpcd | grep -v "grep" | awk '{print $2}' | xargs kill`
+			wpa_PID=`ps -ef | grep wpa_supplicant | grep -v "grep" | awk '{print $2}' | xargs kill` 
+			sudo kill -9 $dhcpcd_PID
+			sudo kill -9 $wpa_PID
 			rm $connectcheck
 			exit 1
 		else
 			echo "You need to authenticate to kill dhcpcd and wpa_supplicant"
-			sudo kill 9 dhcpcd
-			sudo kill 9 wpa_supplicant
+			dhcpcd_PID=`ps -ef | grep dhcpcd | grep -v "grep" | awk '{print $2}' | xargs kill`
+			wpa_PID=`ps -ef | grep wpa_supplicant | grep -v "grep" | awk '{print $2}' | xargs kill`
+			sudo kill -9 $dhcpcd_PID
+			sudo kill -9 $wpa_PID
 			rm $connectcheck
 			exit 1
 		fi
