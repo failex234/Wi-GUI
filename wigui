@@ -157,10 +157,12 @@ if [ "$dhcpcd" == "true" ]; then
 	if [ "$choice" == "y" ]; then
 		if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
 			echo "Killing dhcpcd..."
-			sudo kill 9 dhcpcd
+			dhcpcd_PID=`ps -ef | grep dhcpcd | grep -v "grep" | awk '{print $2}' | xargs kill`
+			sudo kill -9 $dhcpcd_PID
 		else
 			echo "You need to authenticate to kill dhcpcd..."
-			sudo kill 9 dhcpcd
+			dhcpcd_PID=`ps -ef | grep dhcpcd | grep -v "grep" | awk '{print $2}' | xargs kill`
+			sudo kill -9 $dhcpcd_PID
 		fi
 		rm $connectcheck 2&> /dev/null
 	elif [ "$choice" == "n" ]; then
@@ -180,10 +182,12 @@ if [ "$wpa" == "true" ]; then
 	if [ "$choice" == "y" ]; then
 		if [ ${CAN_I_RUN_SUDO} -gt 0 ]; then
 			echo "Killing wpa_supplicant..."
-			sudo kill 9 wpa_supplicant
+			wpa_PID=`ps -ef | grep wpa_supplicant | grep -v "grep" | awk '{print $2}' | xargs kill` 
+			sudo kill -9 $wpa_PID
 		else
 			echo "You need to authenticate to kill wpa_supplicant..."
-			sudo kill 9 wpa_supplicant
+			wpa_PID=`ps -ef | grep wpa_supplicant | grep -v "grep" | awk '{print $2}' | xargs kill` 
+			sudo kill -9 $wpa_PID
 		fi
 		rm $connectcheck 2&> /dev/null
 	elif [ "$choice" == "n" ]; then
@@ -336,7 +340,9 @@ elif [ "$number" == "3" ]; then
 	fi
 		wpa_passphrase "$network" "$password" > pwtemp.conf 
 		sudo wpa_supplicant -B -i $interface -c pwtemp.conf 2&> /dev/null
+		
 		rm pwtemp.conf
+		
 		echo "Connecting to ${network}..."
 		sudo dhcpcd $interface 2&> /dev/null
 		echo "${network}" > $connectcheck
