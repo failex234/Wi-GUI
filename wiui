@@ -3,7 +3,6 @@
 config=$HOME/.config/wigui.conf
 connectcheck=$HOME/.config/connected
 
-#rework needed...
 
 #It's not recommended to change these \/ \/
 n1enabled="true"
@@ -12,6 +11,8 @@ debug="false"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 RESET='\033[0m'
+
+#Will convert everything into a function in the future
 
 hash wpa_supplicant 2>/dev/null || { echo >&2 "wpa_supplicant not found! Maybe it's not installed or not in your PATH."; exit 1; }
 hash dhcpcd 2>/dev/null || { echo >&2 "dhcpcd not found! Maybe it's not installed or not in your PATH."; exit 1; }
@@ -34,7 +35,7 @@ else
 	echo "interface='eth0'" >> $config
 	clear
 	echo "Before you first use Wi-UI you have to change "
-	echo "the config to your needs. "
+	echo "the config to fit your needs. "
 	echo "The config is located in ${HOME}/.config/wigui.conf"
 	exit 1
 fi
@@ -177,7 +178,7 @@ if [ "$dhcpcd" == "true" ]; then
 fi
 
 if [ "$wpa" == "true" ]; then
-	echo -n "wpa_supplicant is already, to continue wpa_supplicant needs to be killed. Are you sure? [y/n] "
+	echo -n "wpa_supplicant is already running, to continue wpa_supplicant needs to be killed. Are you sure? [y/n] "
 	read choice
 	CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1|grep "load"|wc -l)
 	if [ "$choice" == "y" ]; then
@@ -202,7 +203,7 @@ fi
 fi
 if [ "$number" == "1" ]; then
 	echo ""
-	echo -n "Please enter the password for ${network1}: "
+	echo -n "Please enter the passphrase for ${network1}: "
 	read password
 	if [ "$UID" == "0" ]; then
 		echo "Initializing connection to ${network1}..."
@@ -258,7 +259,7 @@ if [ "$number" == "1" ]; then
 	fi
 elif [ "$number" == "2" ]; then
 	echo ""
-	echo -n "Please enter the password for ${network2}: "
+	echo -n "Please enter the passphrase for ${network2}: "
 	read password
 	if [ "$UID" == "0" ]; then
 		echo "Initializing connection to ${network2}..."
@@ -311,7 +312,7 @@ elif [ "$number" == "3" ]; then
 	echo -n "Please input the network you want to connect to: "
 	read network
 	echo ""
-	echo -n "Please enter the password for ${network}: "
+	echo -n "Please enter the passphrase for ${network}: "
 	read password
 	if [ "$UID" == "0" ]; then
 		echo "Initializing connection to ${network}..."
